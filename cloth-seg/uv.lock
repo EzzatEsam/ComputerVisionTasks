@@ -196,6 +196,7 @@ dependencies = [
     { name = "requests" },
     { name = "segmentation-models-pytorch" },
     { name = "tensorboard" },
+    { name = "torch" },
     { name = "tqdm" },
 ]
 
@@ -209,6 +210,7 @@ requires-dist = [
     { name = "requests", specifier = ">=2.32.5" },
     { name = "segmentation-models-pytorch", specifier = ">=0.5.0" },
     { name = "tensorboard", specifier = ">=2.20.0" },
+    { name = "torch", specifier = ">=2.9.1" },
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
 
