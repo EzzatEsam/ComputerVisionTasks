@@ -16,7 +16,6 @@ from config import (
 )
 
 
-
 def download_file(url: str, dest_path: Path, chunk_size: int = 8192):
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     if dest_path.exists():
@@ -53,16 +52,18 @@ def generate_masks(json_file_path: Path, folder: Path):
     folder.mkdir(parents=True, exist_ok=True)
     coco = COCO(json_file_path)
     for img in tqdm(coco.getImgIds()):
-        annotations = coco.getAnnIds(img)
+        annotation_ids = coco.getAnnIds(img)
+        annotations = coco.loadAnns(annotation_ids)
+
+        # Paint larger areas first
+        annotations = sorted(annotations, key=lambda x: x["area"], reverse=True)
         img_info = coco.loadImgs(img)[0]
         mask = np.zeros((img_info["height"], img_info["width"]), dtype=np.uint8)
-        for ann_id in annotations:
-            annotation = coco.loadAnns(ann_id)[0]
+        for annotation in annotations:
             mask_for_ann = coco.annToMask(annotation)
             cat_id = annotation["category_id"]
-            super_cat= coco.loadCats(cat_id)[0]["supercategory"]
+            super_cat = coco.loadCats(cat_id)[0]["supercategory"]
             mask[mask_for_ann == 1] = CATEGORIES[super_cat]
-            
 
         output_filename = os.path.splitext(img_info["file_name"])[0] + ".png"
         save_path = folder / output_filename
@@ -73,18 +74,18 @@ def generate_masks(json_file_path: Path, folder: Path):
 
 
 def load_data():
-    # download_file(TRAIN_DATA_URL, DATA_PATH / "fashionist.zip")
-    # extract_zip(DATA_PATH / "fashionist.zip", DATA_PATH / "fashionist")
-    # download_file(VAL_DATA_URL, DATA_PATH / "fashionist_val.zip")
-    # extract_zip(DATA_PATH / "fashionist_val.zip", DATA_PATH / "fashionist")
-    # download_file(
-    #     TRAIN_DATA_ANNOTATIONS,
-    #     DATA_PATH / "fashionist" / "instances_attributes_train2020.json",
-    # )
-    # download_file(
-    #     VAL_DATA_ANNOTATIONS,
-    #     DATA_PATH / "fashionist" / "instances_attributes_val2020.json",
-    # )
+    download_file(TRAIN_DATA_URL, DATA_PATH / "fashionist.zip")
+    extract_zip(DATA_PATH / "fashionist.zip", DATA_PATH / "fashionist")
+    download_file(VAL_DATA_URL, DATA_PATH / "fashionist_val.zip")
+    extract_zip(DATA_PATH / "fashionist_val.zip", DATA_PATH / "fashionist")
+    download_file(
+        TRAIN_DATA_ANNOTATIONS,
+        DATA_PATH / "fashionist" / "instances_attributes_train2020.json",
+    )
+    download_file(
+        VAL_DATA_ANNOTATIONS,
+        DATA_PATH / "fashionist" / "instances_attributes_val2020.json",
+    )
 
     generate_masks(
         DATA_PATH / "fashionist" / "instances_attributes_train2020.json",

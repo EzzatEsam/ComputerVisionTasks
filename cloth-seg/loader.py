@@ -14,7 +14,7 @@ from config import (
     VAL_IMGS_FOLDER,
     VAL_MASKS_FOLDER,
 )
-
+    
 
 class FashionpediaDatasetTV(Dataset):
     def __init__(self, images_dir: Path, masks_dir: Path, transforms=None):
@@ -37,6 +37,21 @@ class FashionpediaDatasetTV(Dataset):
             valid = sorted(list(img_stems.intersection(mask_stems)))
             self.image_ids = [f"{x}.jpg" for x in valid]
             self.mask_ids = [f"{x}.png" for x in valid]
+            
+        # Check empty file :
+        for i,(img_name , mask_name) in enumerate(zip(self.image_ids, self.mask_ids)):
+            img_path = self.images_dir / img_name
+            mask_path = self.masks_dir / mask_name
+            if img_path.stat().st_size == 0 or mask_path.stat().st_size == 0:
+                print(f"Warning: Empty file detected. Img: {img_path}, Mask: {mask_path}")
+                self.image_ids[i] = None
+                self.mask_ids[i] = None
+                
+        # Remove None entries
+        self.image_ids = [x for x in self.image_ids if x is not None]
+        self.mask_ids = [x for x in self.mask_ids if x is not None]
+
+                
 
     def __len__(self):
         return len(self.image_ids)
@@ -72,23 +87,44 @@ class FashionpediaDatasetTV(Dataset):
 
 MEAN = [0.485, 0.456, 0.406]
 STD = [0.229, 0.224, 0.225]
+
 def get_tv_transforms(train=True):
     transforms_list = []
 
-    # 1. Resize (Applied to both)
-    transforms_list.append(v2.Resize((IMG_SIZE, IMG_SIZE), antialias=True))
+    # 1. Resize/Crop (Applied to both Image and Mask)
+    if train:
+        # RandomResizedCrop replaces fixed Resize for training variance
+        transforms_list.append(v2.RandomResizedCrop(
+            (IMG_SIZE, IMG_SIZE), 
+            scale=(0.8, 1.0), 
+            ratio=(0.75, 1.33), 
+            antialias=True
+        ))
+    else:
+        # Fixed Resize and a Center Crop for validation/test consistency
+        transforms_list.append(v2.Resize((IMG_SIZE, IMG_SIZE), antialias=True))
+        transforms_list.append(v2.CenterCrop(IMG_SIZE))
 
     if train:
-        # 2. Random Augmentations (Applied to both simultaneously)
+        # 2. Random Geometric & Color Augmentations
         transforms_list.append(v2.RandomHorizontalFlip(p=0.5))
         transforms_list.append(v2.RandomRotation(degrees=10))
+        
+        # Add slight translation and shear
+        transforms_list.append(v2.RandomAffine(
+            degrees=0,
+            translate=(0.1, 0.1),
+            shear=10 
+        ))
 
-    # 3. Type Conversion & Normalization
-    # ToDtype(float32, scale=True) divides image by 255.0.
-    # It does NOT scale the mask because it's wrapped in tv_tensors.Mask
+        # Color Augmentations (affecting Image only)
+        transforms_list.append(
+            v2.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1)
+        )
+        transforms_list.append(v2.RandomGrayscale(p=0.1))
+
+    # 3. Type Conversion & Normalization (Applied last)
     transforms_list.append(v2.ToDtype(torch.float32, scale=True))
-
-    # Normalize (Only affects Image, ignores Mask automatically)
     transforms_list.append(v2.Normalize(mean=MEAN, std=STD))
 
     return v2.Compose(transforms_list)
@@ -102,8 +138,8 @@ val_ds = FashionpediaDatasetTV(
     VAL_IMGS_FOLDER, VAL_MASKS_FOLDER, transforms=get_tv_transforms(train=False)
 )
 
-train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=2)
-val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False, num_workers=2)
+train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=4 , pin_memory=True)
+val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False, num_workers=4 , pin_memory=True)
 
 
 

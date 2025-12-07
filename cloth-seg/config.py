@@ -18,22 +18,27 @@ BATCH_SIZE = 8
 IMG_SIZE = 512
 
 CATEGORIES = {
-    "closures": 0,
-    "upperbody": 1,
-    "head": 2,
-    "legs and feet": 3,
-    "garment parts": 4,
-    "arms and hands": 5,
-    "decorations": 6,
-    "neck": 7,
-    "others": 8,
-    "lowerbody": 9,
-    "waist": 10,
-    "wholebody": 11,
+    "background": 0,
+    "closures": 1,
+    "upperbody": 2,
+    "head": 3,
+    "legs and feet": 4,
+    "garment parts": 5,
+    "arms and hands": 6,
+    "decorations": 7,
+    "neck": 8,
+    "others": 9,
+    "lowerbody": 10,
+    "waist": 11,
+    "wholebody": 12,
 }
-ENCODER_NAME = "efficientnet-b1"
+ENCODER_NAME = "mit_b1"
 ENCODER_WEIGHTS = "imagenet"
 NUM_CLASSES = len(CATEGORIES)
 
 torch.random.manual_seed(42)
 numpy.random.seed(42)
+
+
+
+BEST_MODEL_PATH = Path.cwd() / "checkpoints" / "cloth-segmentation-epoch=05-val_loss=0.1944-val_iou=0.5070.ckpt"
