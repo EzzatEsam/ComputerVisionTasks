@@ -14,7 +14,7 @@ TRAIN_IMGS_FOLDER = DATA_PATH / "fashionist" / "train"
 TRAIN_MASKS_FOLDER = DATA_PATH / "fashionist" / "train_masks"
 VAL_IMGS_FOLDER = DATA_PATH / "fashionist" / "test"
 VAL_MASKS_FOLDER = DATA_PATH / "fashionist" / "val_masks"
-BATCH_SIZE = 8
+BATCH_SIZE = 32
 IMG_SIZE = 512
 
 CATEGORIES = {
@@ -41,4 +41,4 @@ numpy.random.seed(42)
 
 
 
-BEST_MODEL_PATH = Path.cwd() / "checkpoints" / "cloth-segmentation-epoch=05-val_loss=0.1944-val_iou=0.5070.ckpt"
+BEST_MODEL_PATH = Path.cwd() / "checkpoints" / "cloth-segmentation-epoch=07-val_loss=0.2172-val_iou=0.5409.ckpt"

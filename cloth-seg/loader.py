@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import numpy as np
 import torch
@@ -137,10 +138,26 @@ train_ds = FashionpediaDatasetTV(
 val_ds = FashionpediaDatasetTV(
     VAL_IMGS_FOLDER, VAL_MASKS_FOLDER, transforms=get_tv_transforms(train=False)
 )
+NUM_WORKERS = os.cpu_count()-2
+train_loader = DataLoader(
+    train_ds,
+    batch_size=BATCH_SIZE,
+    shuffle=True,
+    num_workers=NUM_WORKERS,
+    persistent_workers=True,
+    prefetch_factor=2,
+    pin_memory=True,
+)
 
-train_loader = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=4 , pin_memory=True)
-val_loader = DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False, num_workers=4 , pin_memory=True)
-
+val_loader = DataLoader(
+    val_ds,
+    batch_size=BATCH_SIZE,
+    shuffle=False,
+    num_workers=NUM_WORKERS,
+    pin_memory=True,
+    persistent_workers=True,
+    prefetch_factor=2,
+)
 
 
 
