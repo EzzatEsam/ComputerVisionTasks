@@ -25,6 +25,19 @@ powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
 
 ## Usage Guide
 
+## Configuration (Optional)
+
+You can customize the training and model behavior by modifying `config.py`. The key parameters are:
+
+| Parameter | Default | Description |
+| :--- | :--- | :--- |
+| `BATCH_SIZE` | `32` | Reduce this to `16` or `8` if you run into CUDA Out-of-Memory errors. |
+| `IMG_SIZE` | `512` | The input resolution for the model. Higher values (e.g., `1024`) capture more detail but require more VRAM and training time. |
+| `ENCODER_NAME` | `"mit_b1"` | The backbone architecture. You can switch this to other encoders supported by SMP (e.g., `"resnet34"`, `"efficientnet-b0"`, `"mit_b2"`). |
+| `ENCODER_WEIGHTS` | `"imagenet"` | Pre-training weights. Use `None` to train from scratch. |
+| `DATA_PATH` | `"data"` | The root directory where datasets are downloaded and extracted. |
+
+
 ### 1. Data Preparation
 Before training, you must download the dataset and convert the COCO annotations into segmentation masks.
 
@@ -79,6 +92,10 @@ uv run infer.py path/to/your/image.jpg
 ```bash
 uv run infer.py test_image.jpg --output results --json
 ```
+
+### Results
+Results can be found in dedicated report file:
+[REPORT.md](REPORT.md)
 
 ## Project Structure
 

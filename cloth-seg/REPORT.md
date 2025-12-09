@@ -4,9 +4,9 @@
 ## 1. Dataset Choice and Rationale
 
 **Dataset:** Fashionpedia 
-**Classes:** 47 categories and 13 supercatogires (including Upperbody, Lowerbody, Decorations, Closures, etc.)
+**Classes:** 47 categories and 13 supercategories (including Upperbody, Lowerbody, Decorations, Closures, etc.)
 
-For this project, I used supercatogires as classes for simplicity
+For this project, I used supercategories as classes for simplicity
 
 **Reasons for Selection:**
 1.  **Size:** Dataset contains more 45 thousand images and more than 300 thousand annotations.
