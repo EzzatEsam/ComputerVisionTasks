@@ -13,7 +13,10 @@ from config import (
     TRANSFORM_STD,
     VAL_IMGS_FOLDER,
     IMG_SIZE,
+    TRAIN_CSV_PATH,
+    VAL_CSV_PATH,
 )
+
 
 class ImdbWikiDataset(Dataset):
     def __init__(self, root_dir: Path, csv_file: Path, transform=None):
@@ -25,16 +28,16 @@ class ImdbWikiDataset(Dataset):
         """
         self.root_dir = root_dir
         self.transform = transform
-        
+
         # Load the specific CSV for this split
         if not csv_file.exists():
             raise FileNotFoundError(f"Metadata file not found: {csv_file}")
-            
+
         self.df = pd.read_csv(csv_file)
-        
+
         # We expect columns: 'filename', 'age', 'gender'
         # Check required columns exist
-        required_cols = ['filename', 'age']
+        required_cols = ["filename", "age"]
         if not all(col in self.df.columns for col in required_cols):
             raise ValueError(f"CSV must contain columns: {required_cols}")
 
@@ -44,8 +47,8 @@ class ImdbWikiDataset(Dataset):
     def __getitem__(self, idx):
         # Get row data
         row = self.df.iloc[idx]
-        filename = row['filename']
-        age = row['age']
+        filename = row["filename"]
+        age = row["age"]
         # gender = row['gender'] # Available if needed later
 
         # Construct full path
@@ -69,6 +72,7 @@ class ImdbWikiDataset(Dataset):
 
 
 # --- Transform Logic (Unchanged) ---
+
 
 def get_tv_transforms(train=True):
     transforms_list = []
@@ -96,13 +100,6 @@ def get_tv_transforms(train=True):
 
     return v2.Compose(transforms_list)
 
-
-# --- Initialization ---
-
-# Define paths to the CSV files generated in the previous step
-# They are located in the parent folder of the image directories
-TRAIN_CSV_PATH = TRAIN_IMGS_FOLDER.parent / "train.csv"
-VAL_CSV_PATH = VAL_IMGS_FOLDER.parent / "val.csv"
 
 # 1. Train Dataset
 train_ds = ImdbWikiDataset(

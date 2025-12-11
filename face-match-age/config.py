@@ -21,3 +21,8 @@ TRANSFORM_STD = [0.229, 0.224, 0.225]
 
 BEST_MODEL_PATH=Path("./checkpoints/face-age-detepoch=10-val_loss=1.2647-val_mae=5.54.ckpt")
 VERIFICATION_THRESHOLD = 0.5  # Cosine similarity threshold
+
+# Define paths to the CSV files generated in the previous step
+# They are located in the parent folder of the image directories
+TRAIN_CSV_PATH = TRAIN_IMGS_FOLDER.parent / "train.csv"
+VAL_CSV_PATH = VAL_IMGS_FOLDER.parent / "val.csv"
