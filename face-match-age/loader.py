@@ -4,9 +4,9 @@ from pathlib import Path
 from torch.utils.data import Dataset, DataLoader
 from torchvision.io import read_image, ImageReadMode
 from torchvision.transforms import v2
+
 from config import (
     BATCH_SIZE,
-    IMAGES_FEATURES_FILE,
     NUM_WORKERS,
     TRAIN_IMGS_FOLDER,
     TRANSFORM_MEAN,
@@ -15,58 +15,60 @@ from config import (
     IMG_SIZE,
 )
 
-df = pd.read_csv(IMAGES_FEATURES_FILE)
-NAME_TO_AGE = dict(zip(df["name"], df["age"]))
-del df
-
-
-class CacdDataset(Dataset):
-    def __init__(self, root_dir: Path, transform=None):
+class ImdbWikiDataset(Dataset):
+    def __init__(self, root_dir: Path, csv_file: Path, transform=None):
         """
         Args:
-            root_dir (Path): Path to either TRAIN_IMGS_FOLDER or VAL_IMGS_FOLDER
-            transform (callable, optional): Transform to apply to the image
+            root_dir (Path): Path to the folder containing images.
+            csv_file (Path): Path to the specific train.csv or val.csv.
+            transform (callable, optional): Transform to apply to the image.
         """
         self.root_dir = root_dir
         self.transform = transform
-
-        # 1. Load the CSV once to build a lookup dictionary
-        # We assume columns "name" (filename) and "age" exist.
-
-        # 2. List ONLY the images present in this specific directory (Train or Val)
-        # We sort them to ensure deterministic ordering every time we load.
-        self.img_paths = sorted(list(self.root_dir.glob("*.jpg")))
-
-        # 3. Optional: Filter out images found in folder but not in CSV (safety check)
-        # This ensures __getitem__ never fails on a missing key.
-        self.valid_data = []
-        for img_path in self.img_paths:
-            img_name = img_path.name
-            if img_name in NAME_TO_AGE:
-                self.valid_data.append((img_path, NAME_TO_AGE[img_name]))
-            else:
-                print(f"Warning: Image {img_name} found in folder but not in CSV.")
+        
+        # Load the specific CSV for this split
+        if not csv_file.exists():
+            raise FileNotFoundError(f"Metadata file not found: {csv_file}")
+            
+        self.df = pd.read_csv(csv_file)
+        
+        # We expect columns: 'filename', 'age', 'gender'
+        # Check required columns exist
+        required_cols = ['filename', 'age']
+        if not all(col in self.df.columns for col in required_cols):
+            raise ValueError(f"CSV must contain columns: {required_cols}")
 
     def __len__(self):
-        return len(self.valid_data)
+        return len(self.df)
 
     def __getitem__(self, idx):
-        img_path, age = self.valid_data[idx]
+        # Get row data
+        row = self.df.iloc[idx]
+        filename = row['filename']
+        age = row['age']
+        # gender = row['gender'] # Available if needed later
+
+        # Construct full path
+        img_path = self.root_dir / filename
 
         # Read image
-        image = read_image(str(img_path), mode=ImageReadMode.RGB)
+        try:
+            # We assume images are valid since we cleaned them in the prep script
+            image = read_image(str(img_path), mode=ImageReadMode.RGB)
+        except Exception as e:
+            print(f"Error loading {img_path}: {e}")
+            # Return a black image or handle error appropriately in production
+            image = torch.zeros((3, IMG_SIZE, IMG_SIZE), dtype=torch.uint8)
 
         # Apply transforms
         if self.transform:
             image = self.transform(image)
 
         # Return image and float age
-        # (If using KL-Divergence later, you might convert this float to a distribution here)
         return image, torch.tensor(age, dtype=torch.float32)
 
 
-# --- Transform Logic (Same as before) ---
-
+# --- Transform Logic (Unchanged) ---
 
 def get_tv_transforms(train=True):
     transforms_list = []
@@ -97,15 +99,22 @@ def get_tv_transforms(train=True):
 
 # --- Initialization ---
 
+# Define paths to the CSV files generated in the previous step
+# They are located in the parent folder of the image directories
+TRAIN_CSV_PATH = TRAIN_IMGS_FOLDER.parent / "train.csv"
+VAL_CSV_PATH = VAL_IMGS_FOLDER.parent / "val.csv"
+
 # 1. Train Dataset
-train_ds = CacdDataset(
+train_ds = ImdbWikiDataset(
     root_dir=TRAIN_IMGS_FOLDER,
+    csv_file=TRAIN_CSV_PATH,
     transform=get_tv_transforms(train=True),
 )
 
 # 2. Validation Dataset
-val_ds = CacdDataset(
+val_ds = ImdbWikiDataset(
     root_dir=VAL_IMGS_FOLDER,
+    csv_file=VAL_CSV_PATH,
     transform=get_tv_transforms(train=False),
 )
 
@@ -130,55 +139,47 @@ val_loader = DataLoader(
     prefetch_factor=2,
 )
 
-
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import numpy as np
-    import shutil
 
     # 1. Setup Output Directory
     save_dir = Path("visualized_samples")
-    if save_dir.exists():
-        shutil.rmtree(save_dir)  # Clean previous runs
+
     save_dir.mkdir(parents=True, exist_ok=True)
 
     def denormalize(tensor, mean, std):
-        """
-        Reverses the v2.Normalize operation for visualization.
-        Input: Tensor (C, H, W)
-        Output: Numpy Array (H, W, C) range [0, 1]
-        """
-        # Clone so we don't modify the data in the loader
+        """Reverses v2.Normalize for visualization."""
         t = tensor.clone()
-
-        # Reverse Normalization: pixel = (pixel * std) + mean
-        # We loop over the 3 channels
         for t_c, m, s in zip(t, mean, std):
             t_c.mul_(s).add_(m)
-
-        # Clamp values to [0, 1] to handle any float precision overshoots
         t = torch.clamp(t, 0, 1)
-
-        # Permute from (C, H, W) -> (H, W, C) for Matplotlib
         return t.permute(1, 2, 0).numpy()
 
     def save_samples(loader, split_name):
         print(f"Fetching batch from {split_name} loader...")
 
-        # Get one batch
-        images, ages = next(iter(loader))
+        try:
+            images, ages = next(iter(loader))
+        except StopIteration:
+            print(f"Loader {split_name} is empty.")
+            return
 
         # Pick 4 random indices from the batch
-        indices = np.random.choice(len(images), 4, replace=False)
+        batch_len = len(images)
+        indices = np.random.choice(batch_len, min(4, batch_len), replace=False)
 
         fig, axes = plt.subplots(1, 4, figsize=(16, 5))
         fig.suptitle(f"{split_name.capitalize()} Samples", fontsize=20)
+
+        if len(indices) < 4:
+            # Handle edge case if batch size < 4
+            axes = axes.flatten()
 
         for i, idx in enumerate(indices):
             img_tensor = images[idx]
             age = ages[idx].item()
 
-            # Convert tensor to displayable image
             vis_img = denormalize(img_tensor, TRANSFORM_MEAN, TRANSFORM_STD)
 
             axes[i].imshow(vis_img)
@@ -195,4 +196,5 @@ if __name__ == "__main__":
     save_samples(train_loader, "train")
     save_samples(val_loader, "validation")
 
-    print("\nVisualization complete. Check the 'visualized_samples' folder.")
+    print(f"\nDataset sizes - Train: {len(train_ds)}, Val: {len(val_ds)}")
+    print("Visualization complete. Check the 'visualized_samples' folder.")

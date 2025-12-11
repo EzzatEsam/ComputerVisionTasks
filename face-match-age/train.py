@@ -38,13 +38,12 @@ def train(last_ckpt=None):
 
     # Initialize trainer
     trainer = L.Trainer(
-        max_epochs=50,
+        max_epochs=25,
         accelerator="auto",
-        devices=1,
         callbacks=[checkpoint_callback, early_stop_callback, image_logger_callback],
         logger=logger,
         log_every_n_steps=10,
-        val_check_interval=0.5,
+        val_check_interval=0.25,
         precision="16-mixed" if torch.cuda.is_available() else "32",
     )
 
