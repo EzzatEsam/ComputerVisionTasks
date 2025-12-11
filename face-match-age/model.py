@@ -1,4 +1,3 @@
-from typing import Literal
 import torch
 import torch.nn as nn
 from facenet_pytorch import InceptionResnetV1
@@ -104,4 +103,3 @@ class AgeEstimationModel(pl.LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=1e-4)
         return optimizer
-

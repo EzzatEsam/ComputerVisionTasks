@@ -20,4 +20,4 @@ TRANSFORM_STD = [0.229, 0.224, 0.225]
 
 
 BEST_MODEL_PATH=Path("./checkpoints/face-age-detepoch=10-val_loss=1.2647-val_mae=5.54.ckpt")
-VERIFICATION_THRESHOLD = 0.7  # Cosine similarity threshold
+VERIFICATION_THRESHOLD = 0.5  # Cosine similarity threshold

@@ -63,7 +63,7 @@ def mat_date_to_python(matlab_datenum):
     """Convert Matlab datenum to Python datetime."""
     try:
         return datetime.fromordinal(int(matlab_datenum)) - timedelta(days=366)
-    except:
+    except Exception:
         return None
 
 def process_metadata(mat_path):
@@ -249,6 +249,10 @@ if __name__ == "__main__":
     val_df.to_csv(base_output_dir / "val.csv", index=False)
     print(f"Saved train.csv and val.csv to {base_output_dir}")
     
+    
+    # 12. Cleanup Cache
+    print("Cleaning up cache...")
+    shutil.rmtree(CACHE_DIR)
     
     
 
