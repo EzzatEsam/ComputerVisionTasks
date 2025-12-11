@@ -27,7 +27,7 @@ In this task, I experimented with two primary datasets for training the age pred
 
 
 ### Dataset: IMDB-WIKI
-**Source:** ~[https://data.vision.ee.ethz.ch/cvl/rrothe/imdb-wiki/](https://data.vision.ee.ethz.ch/cvl/rrothe/imdb-wiki/)~
+**Source:** [https://data.vision.ee.ethz.ch/cvl/rrothe/imdb-wiki/]
 
 **Dataset Characteristics:**
 - Large-scale dataset with 523,051 face images from IMDB and Wikipedia
@@ -188,7 +188,7 @@ is_match = cosine_similarity(emb1, emb2) > VERIFICATION_THRESHOLD
 
 ## Graphs
 
-### Validation KL Divergence and MAE over Steps
+### Validation KL Divergence Loss over Steps
 **Blue – CACD Training**  
 **Green – IMDB-WIKI Training**  
 ![Validation KL](.github/images/Screenshot%202025-12-11%20155658.png)
@@ -244,3 +244,9 @@ is_match = cosine_similarity(emb1, emb2) > VERIFICATION_THRESHOLD
 
 ### Conclusion
 Although training and validation metrics were better on the CACD dataset, the IMDB-WIKI model demonstrated superior generalization during inference on unseen celebrity images. This suggests that the larger and more diverse IMDB-WIKI dataset provided a more robust training foundation, despite slightly higher validation errors.
+
+
+### Technical Setup
+- Python 3.13
+- Nvidia L4 GPU with CUDA 11.8
+- Torch 2.9.1
