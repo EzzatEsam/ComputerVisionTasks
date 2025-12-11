@@ -16,3 +16,5 @@ logs/
 visualized_samples/
 
 checkpoints/
+
+data_cache/
