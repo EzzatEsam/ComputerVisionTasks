@@ -19,10 +19,16 @@ TRANSFORM_MEAN = [0.485, 0.456, 0.406]
 TRANSFORM_STD = [0.229, 0.224, 0.225]
 
 
-BEST_MODEL_PATH=Path("./checkpoints/face-age-detepoch=10-val_loss=1.2647-val_mae=5.54.ckpt")
+BEST_MODEL_PATH = Path(
+    "./checkpoints/face-age-detepoch=10-val_loss=1.2647-val_mae=5.54.ckpt"
+)
 VERIFICATION_THRESHOLD = 0.5  # Cosine similarity threshold
 
-# Define paths to the CSV files generated in the previous step
-# They are located in the parent folder of the image directories
+
 TRAIN_CSV_PATH = TRAIN_IMGS_FOLDER.parent / "train.csv"
 VAL_CSV_PATH = VAL_IMGS_FOLDER.parent / "val.csv"
+
+
+DATASET_URL = "https://data.vision.ee.ethz.ch/cvl/rrothe/imdb-wiki/static/imdb_crop.tar"
+DATASET_FILENAME = "imdb_crop.tar"
+CACHE_DIR = Path("data_cache")
