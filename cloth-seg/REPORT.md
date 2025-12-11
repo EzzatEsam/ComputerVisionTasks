@@ -90,9 +90,14 @@ The evaluation was performed on the validation set using **Macro-averaging** (tr
 |---------|---------|
 | ![](.github/images/sopranos.jpg) | ![](.github/images/sopranos_overlay.jpg) |
 
-## 5. Limitations and Future Work
+## 5. Limitations
 
 1.  **Multi Person Photos:** The model struggles with images containing multiple individuals, as the number of people increases, the model can detect all background.
 2.  **Small Accessories:** Items like buttons, zippers, and small decorations are often missed or misclassified.
 3.  **Overlapping Clothes:** The model has difficulty accurately segmenting overlapping garments, especially when colors and textures are similar.
 
+
+### Technical Setup
+- Python 3.13
+- Nvidia L4 GPU with CUDA 11.8
+- Torch 2.9.1
