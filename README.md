@@ -13,7 +13,7 @@ This repository contains multiple computer vision projects under active developm
   - See project details in [face-match-age/README.md](face-match-age/README.md).
 
 - [testing-styleclip/](testing-styleclip/)
-  - Experimental setup for StyleCLIP-based edits. This project is not finished and has not been pushed fully; status is pending.
+  - Experimental setup for StyleCLIP-based edits.
 
 ## Notes
 - For per-project setup, usage, and checkpoints, refer to each folder's README and REPORT.md.
