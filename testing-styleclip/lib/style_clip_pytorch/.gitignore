@@ -1,0 +1,14 @@
+*.swp
+*.pyc
+*.pkl
+*.pth
+*.pt
+*.dat
+test.ipynb
+test/
+test2/
+tmp/
+.ipynb_checkpoints
+pivot_tuning_inversion/aligned/
+pivot_tuning_inversion/aligned2/
+StyleCLIP_pytorch.egg-info/
