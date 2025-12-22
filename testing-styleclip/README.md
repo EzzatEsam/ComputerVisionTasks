@@ -70,7 +70,7 @@ python infer.py -i <input_image> -o <output_image> -t "<target_prompt>" -n "<neu
 | `-o, --output` | Output image path | `output.png` | `result.png` |
 | `-t, --target` | Target text prompt describing desired change | Required | `"blonde hair"` |
 | `-n, --neutral` | Neutral/baseline text prompt | `"face"` | `"black hair"` |
-| `-a, --alpha` | Manipulation strength (can be negative) | `2` | `-1.5` or `4` |
+| `-a, --alpha` | Manipulation strength (can be negative) | `2` | `1.5` or `4` |
 | `-b, --beta` | Disentanglement threshold | `0.1` | `0.05` |
 | `--device` | Device to use | `cuda` if available | `cuda` or `cpu` |
 
@@ -78,22 +78,22 @@ python infer.py -i <input_image> -o <output_image> -t "<target_prompt>" -n "<neu
 
 Transform hair color:
 ```bash
-python infer.py -i TonySoprano.png -o TonySoprano_blonde.png -t "thick blonde hair" -n "bald" -a -1.5 -b 0.1
+python infer.py -i TonySoprano.png -o TonySoprano_blonde.png -t "thick blonde hair" -n "bald" -a 1.5 -b 0.1
 ```
 
 Make face younger:
 ```bash
-python infer.py -i TonySoprano.png -o TonySoprano_Young.png -t "young face" -n "middle age face" -a -1.5 -b 0.1
+python infer.py -i TonySoprano.png -o TonySoprano_Young.png -t "young face" -n "middle age face" -a 1.5 -b 0.1
 ```
 
 Change expression:
 ```bash
-python infer.py -i TonySoprano.png -o TonySoprano_Happy.png -t "happy face" -n "neutral face" -a -1.5 -b 0.1
+python infer.py -i TonySoprano.png -o TonySoprano_Happy.png -t "happy face" -n "neutral face" -a 1.5 -b 0.1
 ```
 
 Change pose:
 ```bash
-python infer.py -i TonySoprano.png -o TonySoprano_Left.png -t "left facing face" -n "forward facing face" -a -1.5 -b 0.1
+python infer.py -i TonySoprano.png -o TonySoprano_Left.png -t "left facing face" -n "forward facing face" -a 1.5 -b 0.1
 ```
 
 ### Implementation Details
