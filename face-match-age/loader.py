@@ -49,19 +49,15 @@ class ImdbWikiDataset(Dataset):
         row = self.df.iloc[idx]
         filename = row["filename"]
         age = row["age"]
-        # gender = row['gender'] # Available if needed later
 
         # Construct full path
         img_path = self.root_dir / filename
 
         # Read image
         try:
-            # We assume images are valid since we cleaned them in the prep script
             image = read_image(str(img_path), mode=ImageReadMode.RGB)
         except Exception as e:
-            print(f"Error loading {img_path}: {e}")
-            # Return a black image or handle error appropriately in production
-            image = torch.zeros((3, IMG_SIZE, IMG_SIZE), dtype=torch.uint8)
+            raise RuntimeError(f"Error reading image {img_path}: {e}")
 
         # Apply transforms
         if self.transform:
@@ -71,7 +67,6 @@ class ImdbWikiDataset(Dataset):
         return image, torch.tensor(age, dtype=torch.float32)
 
 
-# --- Transform Logic (Unchanged) ---
 
 
 def get_tv_transforms(train=True):

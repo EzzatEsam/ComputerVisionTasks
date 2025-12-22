@@ -22,7 +22,6 @@ class ImageLogger(L.Callback):
     def _visualize_batch(self, trainer, pl_module, batch, stage: str):
         images, masks = batch
 
-        # Move to CPU immediately
         images = images[: self.num_samples].cpu()
         masks = masks[: self.num_samples].cpu()
 

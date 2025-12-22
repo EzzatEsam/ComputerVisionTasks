@@ -21,7 +21,6 @@ class ClothSegmentationModel(L.LightningModule):
         super().__init__()
         self.save_hyperparameters()
 
-        # 1. Model Setup
         self.model = smp.Unet(
             encoder_name=ENCODER_NAME,
             encoder_weights=ENCODER_WEIGHTS,
@@ -33,14 +32,12 @@ class ClothSegmentationModel(L.LightningModule):
             for param in self.model.encoder.parameters():
                 param.requires_grad = False
 
-        # 2. Loss Functions
         self.dice_loss = smp.losses.DiceLoss(
             mode="multiclass", from_logits=True, smooth=1
         )
         self.pixel_loss = smp.losses.FocalLoss(mode="multiclass")
 
-        # 3. Validation Metrics (Global)
-        # We use a MetricCollection to compute multiple metrics at once
+
         metrics = torchmetrics.MetricCollection(
             {
                 "val_iou": MulticlassJaccardIndex(
@@ -71,7 +68,6 @@ class ClothSegmentationModel(L.LightningModule):
         self.log(f"{stage}_pixel_loss", pixel_loss, on_step=True, on_epoch=True)
         self.log(f"{stage}_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
 
-        # Return outputs so we can use them for metrics in validation
         return loss, outputs, masks
 
     def training_step(self, batch, batch_idx):
@@ -81,14 +77,10 @@ class ClothSegmentationModel(L.LightningModule):
     def validation_step(self, batch, batch_idx):
         loss, outputs, masks = self._shared_step(batch, stage="val")
 
-        # Convert logits to class indices (Predictions)
         preds = torch.argmax(outputs, dim=1)
 
-        # Update metrics (TorchMetrics handles the global accumulation internally)
         self.val_metrics.update(preds, masks)
 
-        # Log the metrics
-        # on_step=False, on_epoch=True ensures we only log the aggregated result at the end of the epoch
         self.log_dict(self.val_metrics, on_step=False, on_epoch=True, prog_bar=True)
 
         return loss

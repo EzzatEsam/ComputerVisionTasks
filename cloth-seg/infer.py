@@ -6,14 +6,12 @@ import numpy as np
 from pathlib import Path
 from torchvision import transforms
 
-# Import project modules
 from model import ClothSegmentationModel
-from config import IMG_SIZE, CATEGORIES, BEST_MODEL_PATH
+from config import IMG_SIZE, CATEGORIES, BEST_MODEL_PATH, MEAN, STD
 
 
 ID2LABEL = {v: k for k, v in CATEGORIES.items()}
 
-# Generate unique colors (Fixed seed for consistency)
 np.random.seed(42)
 COLORS = np.array(
     [
@@ -44,7 +42,7 @@ def get_transform() -> transforms.Compose:
             transforms.ToPILImage(),
             transforms.Resize((IMG_SIZE, IMG_SIZE)),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Normalize(mean=MEAN, std=STD),
         ]
     )
 
@@ -67,7 +65,7 @@ def load_model(ckpt_path: str) -> tuple[ClothSegmentationModel, torch.device]:
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Load from Lightning checkpoint
+
     model = ClothSegmentationModel.load_from_checkpoint(ckpt_path)
     model.to(device)
     model.eval()
@@ -93,8 +91,7 @@ def predict(
     original_image_rgb = cv2.cvtColor(original_image_bgr, cv2.COLOR_BGR2RGB)
     h, w, _ = original_image_rgb.shape
 
-    # 2. Preprocess (Transform expects RGB numpy array or PIL Image)
-    # The transform converts it to Tensor [C, H, W]
+    # 2. Preprocess
     input_tensor = transform(original_image_rgb)
     input_tensor = input_tensor.unsqueeze(0).to(device)  # Add batch dim -> [1, C, H, W]
 
@@ -105,10 +102,7 @@ def predict(
         pred_mask_tensor = torch.argmax(probs, dim=1).squeeze()  # [H, W]
 
     # 4. Resize mask back to original image size
-    # We move to CPU and numpy
     pred_mask_small = pred_mask_tensor.cpu().numpy().astype(np.uint8)
-
-    # Resize using Nearest Neighbor to keep class integers intact
     pred_mask_original = cv2.resize(
         pred_mask_small, (w, h), interpolation=cv2.INTER_NEAREST
     )

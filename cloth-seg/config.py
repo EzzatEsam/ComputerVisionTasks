@@ -39,6 +39,8 @@ NUM_CLASSES = len(CATEGORIES)
 torch.random.manual_seed(42)
 numpy.random.seed(42)
 
-
+# Normalization parameters for ImageNet
+MEAN = [0.485, 0.456, 0.406]
+STD = [0.229, 0.224, 0.225]
 
 BEST_MODEL_PATH = Path.cwd() / "checkpoints" / "cloth-segmentation-epoch=07-val_loss=0.2172-val_iou=0.5409.ckpt"

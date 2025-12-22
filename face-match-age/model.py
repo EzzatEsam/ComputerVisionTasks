@@ -20,7 +20,6 @@ class AgeEstimationModel(pl.LightningModule):
             for param in self.backbone.parameters():
                 param.requires_grad = False
 
-        # InceptionResnetV1 outputs a vector of size 512
         input_dim = 512
 
         self.head = nn.Sequential(

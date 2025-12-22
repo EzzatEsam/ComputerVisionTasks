@@ -68,7 +68,6 @@ def generate_masks(json_file_path: Path, folder: Path):
         output_filename = os.path.splitext(img_info["file_name"])[0] + ".png"
         save_path = folder / output_filename
 
-        # cv2 writes images to disk
         cv2.imwrite(str(save_path), mask)
     print("Mask generation completed.")
 

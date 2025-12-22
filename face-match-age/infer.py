@@ -50,7 +50,6 @@ def load_models(ckpt_path: Path):
     age_model.freeze()
 
     # 3. Verification Model (Pretrained VGGFace2)
-    # Note: classify=False returns the 512-D embedding
     verif_model = (
         InceptionResnetV1(pretrained="vggface2", classify=False).to(DEVICE).eval()
     )
@@ -58,7 +57,13 @@ def load_models(ckpt_path: Path):
     return mtcnn, age_model, verif_model
 
 
-def process_single_image(img_path: Path, mtcnn, age_model, verif_model, age_transforms):
+def process_single_image(
+    img_path: Path,
+    mtcnn: MTCNN,
+    age_model: AgeEstimationModel,
+    verif_model: InceptionResnetV1,
+    age_transforms: v2.Compose,
+):
     """
     Detects face, extracts embeddings, and predicts age for a single image.
     """
@@ -87,14 +92,14 @@ def process_single_image(img_path: Path, mtcnn, age_model, verif_model, age_tran
     age_input = age_transforms(face_crop).unsqueeze(0).to(DEVICE)
 
     # 3. Prepare Input for Verification Model (Standard Norm [-1, 1])
-    # MTCNN forward pass returns normalized tensor automatically
-    # We pass the full image, MTCNN handles cropping internally based on detection
-    verif_input = mtcnn(img_pil)
-    if verif_input is not None:
-        verif_input = verif_input.unsqueeze(0).to(DEVICE)
-    else:
-        # Fallback if detect worked but forward failed (rare)
-        return None
+    verif_input = v2.Compose(
+        [ 
+            v2.ToImage(),
+            v2.Resize((160, 160), antialias=True),
+            v2.ToDtype(torch.float32, scale=True),
+            v2.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+        ]
+    )(face_crop).unsqueeze(0).to(DEVICE)
 
     # 4. Inference
     with torch.no_grad():

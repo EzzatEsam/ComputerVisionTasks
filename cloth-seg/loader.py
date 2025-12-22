@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 from config import (
     BATCH_SIZE,
     IMG_SIZE,
+    MEAN,
+    STD,
     TRAIN_IMGS_FOLDER,
     TRAIN_MASKS_FOLDER,
     VAL_IMGS_FOLDER,
@@ -86,15 +88,13 @@ class FashionpediaDatasetTV(Dataset):
         return img, mask
 
 
-MEAN = [0.485, 0.456, 0.406]
-STD = [0.229, 0.224, 0.225]
+
 
 def get_tv_transforms(train=True):
     transforms_list = []
 
     # 1. Resize/Crop (Applied to both Image and Mask)
     if train:
-        # RandomResizedCrop replaces fixed Resize for training variance
         transforms_list.append(v2.RandomResizedCrop(
             (IMG_SIZE, IMG_SIZE), 
             scale=(0.8, 1.0), 
@@ -124,7 +124,7 @@ def get_tv_transforms(train=True):
         )
         transforms_list.append(v2.RandomGrayscale(p=0.1))
 
-    # 3. Type Conversion & Normalization (Applied last)
+    # 3. Type Conversion & Normalization
     transforms_list.append(v2.ToDtype(torch.float32, scale=True))
     transforms_list.append(v2.Normalize(mean=MEAN, std=STD))
 
@@ -175,9 +175,7 @@ if __name__ == "__main__":
     # How many images from the batch to display/save
     NUM_SAMPLES_TO_SHOW = 4 
 
-    # ImageNet stats for denormalization (Must match your transforms)
-    MEAN = torch.tensor([0.485, 0.456, 0.406]).view(3, 1, 1)
-    STD = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
+
 
     print("Fetching a batch of data...")
     # Get a single batch from the loader
